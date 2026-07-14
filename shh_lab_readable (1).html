@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>소닉 헤지혹(Shh) 발달 유전학 가상 실험실</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+        @keyframes pulse-slow { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.9; } }
+        .animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        .step-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen overflow-x-hidden">
+
+    <div class="max-w-7xl mx-auto p-4 lg:p-6 min-h-screen flex flex-col justify-between">
+
+        <!-- Header -->
+        <header class="border-b border-slate-700 pb-4 mb-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <span class="bg-indigo-500/20 text-indigo-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-indigo-500/30">
+                        생명과학 II · 발달유전학 심화 탐구
+                    </span>
+                    <h1 class="text-2xl lg:text-3xl font-bold tracking-tight mt-2 text-white">
+                        소닉 헤지혹(Shh) 신호전달 & 손가락 발생 시뮬레이터
+                    </h1>
+                    <p class="text-sm text-slate-300 mt-1.5 leading-relaxed max-w-2xl">
+                        생쥐 배아의 앞다리에서 Shh 농도가 어떻게 세포 안 스위치를 켜고 꺼서 손가락 모양을 결정하는지, 슬라이더와 버튼으로 직접 바꿔가며 확인해 보세요.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 shrink-0">
+                    <span class="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-xs text-slate-300 font-medium">시뮬레이션 작동 중</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 3-step map (always visible, plain language) -->
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 mb-6">
+            <p class="text-xs font-semibold text-slate-400 mb-3 tracking-wide">이 신호전달 경로를 한눈에 보면</p>
+            <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 items-center text-center">
+                <div class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-3">
+                    <p class="text-sm font-semibold text-rose-300">① Shh 분비</p>
+                    <p class="text-xs text-slate-400 mt-1">신호 물질이 퍼진다</p>
+                </div>
+                <i class="fa-solid fa-arrow-right text-slate-500 hidden sm:block"></i>
+                <div class="bg-slate-700/50 border border-slate-600 rounded-xl p-3">
+                    <p class="text-sm font-semibold text-slate-200">② Ptc · Smo 수용체</p>
+                    <p class="text-xs text-slate-400 mt-1">신호를 받아들일지 결정</p>
+                </div>
+                <i class="fa-solid fa-arrow-right text-slate-500 hidden sm:block"></i>
+                <div class="bg-slate-700/50 border border-slate-600 rounded-xl p-3">
+                    <p class="text-sm font-semibold text-slate-200">③ PKA → Gli</p>
+                    <p class="text-xs text-slate-400 mt-1">전사인자를 켜거나 자른다</p>
+                </div>
+            </div>
+            <div class="flex items-center justify-center gap-4 mt-3 text-xs">
+                <span class="flex items-center gap-1.5 text-slate-400"><span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span>초록 = 활성/ON</span>
+                <span class="flex items-center gap-1.5 text-slate-400"><span class="h-2.5 w-2.5 rounded-full bg-rose-400"></span>빨강 = 억제/OFF</span>
+            </div>
+        </div>
+
+        <!-- Main Workspace -->
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
+
+            <!-- Left: Controls -->
+            <section class="lg:col-span-5 flex flex-col gap-6">
+
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 flex flex-col gap-6 shadow-lg">
+                    <div class="flex items-center gap-2 border-b border-slate-700 pb-3">
+                        <i class="fa-solid fa-sliders text-indigo-300 text-lg"></i>
+                        <h2 class="text-base font-semibold text-white">조건을 바꿔보기</h2>
+                    </div>
+
+                    <!-- Input 1: Shh level -->
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between items-center text-sm">
+                            <label class="font-medium text-slate-200">1. Shh 분비량 (ZPA 활성)</label>
+                            <span id="shhVal" class="text-xs font-mono font-bold bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-md">5.0 / 10</span>
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed">후방(ZPA)에서 분비되어 퍼지는 Shh 신호물질의 농도예요. 낮을수록 엄지 쪽, 높을수록 새끼손가락 쪽 정보를 전달해요.</p>
+                        <input type="range" id="shhSlider" min="0" max="10" step="0.5" value="5" class="w-full h-2.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                        <div class="flex justify-between text-[11px] text-slate-500 px-1">
+                            <span>0 (없음)</span>
+                            <span>5 (정상)</span>
+                            <span>10 (과다)</span>
+                        </div>
+                    </div>
+
+                    <!-- Input 2: ZPA position -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-medium text-slate-200">2. ZPA(신호원)의 위치</label>
+                        <p class="text-xs text-slate-400 leading-relaxed">1970년대 손더스의 이식 실험처럼, Shh가 나오는 위치를 바꿔볼 수 있어요.</p>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button id="zpaPosterior" class="py-2.5 px-2 text-xs font-semibold rounded-lg border border-indigo-500 bg-indigo-500/20 text-white transition-all">후방<br><span class="text-[10px] font-normal text-slate-400">(정상)</span></button>
+                            <button id="zpaAnterior" class="py-2.5 px-2 text-xs font-semibold rounded-lg border border-slate-600 bg-slate-700/40 text-slate-300 hover:bg-slate-700 transition-all">전방<br><span class="text-[10px] font-normal text-slate-400">(이식)</span></button>
+                            <button id="zpaBilateral" class="py-2.5 px-2 text-xs font-semibold rounded-lg border border-slate-600 bg-slate-700/40 text-slate-300 hover:bg-slate-700 transition-all">양쪽<br><span class="text-[10px] font-normal text-slate-400">(변이)</span></button>
+                        </div>
+                    </div>
+
+                    <!-- Input 3: Smo genotype -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-medium text-slate-200">3. Smo 수용체 유전형</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button id="smoNormal" class="py-2.5 px-2 text-xs font-semibold rounded-lg border border-indigo-500 bg-indigo-500/20 text-white transition-all">야생형</button>
+                            <button id="smoLof" class="py-2.5 px-2 text-xs font-semibold rounded-lg border border-slate-600 bg-slate-700/40 text-slate-300 hover:bg-slate-700 transition-all">기능상실</button>
+                            <button id="smoGof" class="py-2.5 px-2 text-xs font-semibold rounded-lg border border-slate-600 bg-slate-700/40 text-slate-300 hover:bg-slate-700 transition-all">상시활성</button>
+                        </div>
+                        <p id="smoDesc" class="text-xs text-slate-400 leading-relaxed bg-slate-900/60 rounded-lg p-2.5 mt-1">
+                            정상적으로 Shh에 반응해 하위 신호 스위치를 켭니다.
+                        </p>
+                    </div>
+
+                    <!-- Input 4: PKA -->
+                    <div class="flex items-center justify-between bg-slate-900/60 border border-slate-700 p-3.5 rounded-xl">
+                        <div class="flex flex-col gap-0.5 pr-3">
+                            <span class="text-sm font-medium text-slate-200">4. PKA 강제 활성화</span>
+                            <span class="text-xs text-slate-400 leading-relaxed">켜면 Smo 상태와 무관하게 Gli를 계속 억제형으로 자릅니다.</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer select-none shrink-0">
+                            <input type="checkbox" id="pkaToggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-focus:ring-2 peer-focus:ring-indigo-500/40 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-slate-300 after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500 peer-checked:after:bg-white"></div>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-1">
+                        <button id="presetNormal" class="py-2.5 px-4 bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-slate-100 rounded-xl border border-slate-600 flex items-center justify-center gap-1.5 transition-all">
+                            <i class="fa-solid fa-arrow-rotate-left"></i> 야생형으로 리셋
+                        </button>
+                        <button id="presetPolydactyly" class="py-2.5 px-4 bg-amber-500/15 hover:bg-amber-500/25 text-xs font-semibold text-amber-300 rounded-xl border border-amber-500/30 flex items-center justify-center gap-1.5 transition-all">
+                            <i class="fa-solid fa-dna"></i> 다지증 사례 보기
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg">
+                    <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-1.5">
+                        <i class="fa-solid fa-graduation-cap text-indigo-300"></i>
+                        <span>핵심 개념 정리</span>
+                    </h3>
+                    <div class="flex flex-col gap-3 text-xs text-slate-300 leading-relaxed">
+                        <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700">
+                            <strong class="text-indigo-300 block mb-1 text-sm">모르포젠(형태형성물질)이란?</strong>
+                            분비원(ZPA)에서 멀어질수록 농도가 낮아지는 신호 물질이에요. 세포는 이 농도를 읽어서 자신이 어떤 조직으로 분화할지 결정해요.
+                        </div>
+                        <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700">
+                            <strong class="text-emerald-300 block mb-1 text-sm">Shh 스위치는 이렇게 작동해요</strong>
+                            <ul class="list-disc pl-4 space-y-1.5 mt-1">
+                                <li>Shh가 <strong class="text-slate-100">없을 때</strong>: Ptc가 Smo를 억제 → PKA 활성 → Gli가 잘려서 억제형(GliR) → 유전자 <strong class="text-rose-300">OFF</strong> → 엄지(Digit 1)</li>
+                                <li>Shh가 <strong class="text-slate-100">있을 때</strong>: Smo 활성화 → PKA 억제 → Gli가 온전한 활성형(GliA)으로 핵에 들어감 → 유전자 <strong class="text-emerald-300">ON</strong> → 새끼(Digit 5)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Right: Visualization -->
+            <section class="lg:col-span-7 flex flex-col gap-6">
+
+                <div class="bg-slate-800 p-1.5 rounded-xl border border-slate-700 flex shadow-md gap-1">
+                    <button id="tabMolecular" class="flex-1 py-2.5 text-sm font-semibold rounded-lg bg-indigo-500 text-white transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-atom"></i><span>세포 내부 신호 전달</span>
+                    </button>
+                    <button id="tabOrgan" class="flex-1 py-2.5 text-sm font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-paw"></i><span>손가락 형태 형성 결과</span>
+                    </button>
+                </div>
+
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg flex-grow flex flex-col min-h-[460px] relative overflow-hidden">
+
+                    <!-- Molecular View -->
+                    <div id="viewMolecularContainer" class="flex-grow flex flex-col justify-between">
+                        <div class="flex flex-wrap justify-between items-start gap-2 mb-4 border-b border-slate-700 pb-3">
+                            <div>
+                                <h3 class="text-sm font-semibold text-white">세포 안에서 일어나는 신호 스위치</h3>
+                                <p class="text-xs text-slate-400 mt-1">Ptc·Smo 수용체와 PKA, Gli 전사인자가 만드는 ON/OFF 회로</p>
+                            </div>
+                            <span id="molecularStatus" class="text-xs font-mono font-bold bg-rose-500/15 text-rose-300 px-3 py-1.5 rounded-full border border-rose-500/30">
+                                신호 차단됨 (OFF)
+                            </span>
+                        </div>
+
+                        <div class="flex-grow flex items-center justify-center min-h-[280px] bg-slate-900 rounded-xl relative p-4 border border-slate-700">
+                            <svg id="molecularSvg" viewBox="0 0 600 320" class="w-full h-full max-h-[320px]">
+                                <rect x="5" y="100" width="590" height="215" rx="10" fill="#0f172a" stroke="#334155" stroke-width="2" />
+                                <path d="M 400,140 Q 300,150 280,240 Q 320,315 500,315 Q 590,315 590,260 Q 590,140 400,140 Z" fill="#1e1b4b" opacity="0.85" stroke="#4338ca" stroke-width="2"/>
+
+                                <text x="15" y="125" fill="#94a3b8" font-size="12" font-weight="700" letter-spacing="0.5">세포질</text>
+                                <text x="480" y="168" fill="#818cf8" font-size="12" font-weight="700" letter-spacing="0.5">세포핵</text>
+
+                                <line x1="5" y1="100" x2="595" y2="100" stroke="#475569" stroke-width="4" stroke-dasharray="8 4" />
+                                <text x="15" y="90" fill="#94a3b8" font-size="11" font-weight="600">세포막</text>
+
+                                <g id="extracellularShh"></g>
+
+                                <g id="ptcReceptor">
+                                    <rect x="115" y="82" width="48" height="34" rx="5" fill="#ef4444" stroke="#fca5a5" stroke-width="2"/>
+                                    <text x="139" y="103" fill="#ffffff" font-size="11" font-weight="bold" text-anchor="middle">Ptc</text>
+                                </g>
+                                <text x="139" y="70" id="ptcStatusText" fill="#f87171" font-size="10" font-weight="600" text-anchor="middle">Smo 억제 중</text>
+
+                                <g id="smoReceptor">
+                                    <rect x="218" y="82" width="48" height="34" rx="5" fill="#475569" stroke="#64748b" stroke-width="2"/>
+                                    <text x="242" y="103" fill="#ffffff" font-size="11" font-weight="bold" text-anchor="middle">Smo</text>
+                                </g>
+
+                                <path id="ptcSmoInhibit" d="M 163,99 L 218,99" stroke="#f43f5e" stroke-width="2.5" stroke-dasharray="4" marker-end="url(#inhibit-marker)"/>
+
+                                <g id="pkaKinase">
+                                    <circle cx="242" cy="185" r="25" fill="#ef4444" stroke="#f87171" stroke-width="2"/>
+                                    <text x="242" y="189" fill="#ffffff" font-size="11" font-weight="bold" text-anchor="middle">PKA</text>
+                                </g>
+                                <path id="smoPkaInhibit" d="M 242,116 L 242,160" stroke="#ef4444" stroke-width="2.5" marker-end="url(#inhibit-marker)"/>
+
+                                <g id="gliTF">
+                                    <polygon points="340,167 378,183 340,199" fill="#a8a29e" stroke="#d6d3d1" stroke-width="2"/>
+                                    <text x="343" y="187" fill="#ffffff" font-size="11" font-weight="bold" text-anchor="middle">Gli</text>
+                                </g>
+                                <path id="pkaGliPhospho" d="M 267,185 L 320,185" stroke="#ef4444" stroke-width="2.5" marker-end="url(#arrow-marker)"/>
+
+                                <g id="dnaTarget">
+                                    <path d="M 380,260 Q 420,240 460,260 T 540,260" stroke="#64748b" stroke-width="2" fill="none"/>
+                                    <path d="M 380,260 Q 420,280 460,260 T 540,260" stroke="#64748b" stroke-width="2" fill="none" opacity="0.6"/>
+                                    <rect x="418" y="240" width="90" height="18" rx="3" fill="#334155" stroke="#64748b" stroke-width="1.5"/>
+                                    <text x="463" y="252.5" fill="#cbd5e1" font-size="9" font-weight="bold" text-anchor="middle">발달 유전자</text>
+                                </g>
+
+                                <g id="rnaPoly" opacity="0.2">
+                                    <ellipse cx="440" cy="262" rx="28" ry="16" fill="#10b981" opacity="0.25"/>
+                                    <text x="440" y="266" fill="#34d399" font-size="10" font-weight="bold" text-anchor="middle">RNA 중합효소</text>
+                                </g>
+
+                                <defs>
+                                    <marker id="arrow-marker" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444"/>
+                                    </marker>
+                                    <marker id="inhibit-marker" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                        <path d="M 4 0 L 4 10" stroke="#ef4444" stroke-width="3"/>
+                                    </marker>
+                                </defs>
+                            </svg>
+                        </div>
+
+                        <div class="mt-4 p-3.5 bg-slate-900/70 border border-slate-700 rounded-xl">
+                            <span class="text-xs font-semibold text-slate-300 block mb-2">
+                                <i class="fa-solid fa-list-check text-indigo-300 mr-1.5"></i>지금 상태를 단계별로 보면
+                            </span>
+                            <div id="molecularReport" class="flex flex-col gap-1.5"></div>
+                        </div>
+                    </div>
+
+                    <!-- Organ View -->
+                    <div id="viewOrganContainer" class="hidden flex-grow flex flex-col justify-between">
+                        <div class="flex flex-wrap justify-between items-start gap-2 mb-4 border-b border-slate-700 pb-3">
+                            <div>
+                                <h3 class="text-sm font-semibold text-white">앞다리(손가락) 형태 형성 결과</h3>
+                                <p class="text-xs text-slate-400 mt-1">Shh 농도 구배에 따라 손가락 정체성이 어떻게 정해지는지 보여줘요</p>
+                            </div>
+                            <span id="organStatus" class="text-xs font-mono font-bold bg-emerald-500/15 text-emerald-300 px-3 py-1.5 rounded-full border border-emerald-500/30">
+                                정상 앞다리 형성
+                            </span>
+                        </div>
+
+                        <div class="flex-grow flex flex-col md:flex-row items-center gap-4 bg-slate-900 rounded-xl p-4 border border-slate-700 min-h-[280px]">
+
+                            <div class="w-full md:w-1/2 h-full min-h-[180px] flex flex-col justify-center relative">
+                                <div class="absolute top-2 left-2 flex items-center gap-1.5 bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700">
+                                    <span class="h-2 w-2 rounded-full bg-rose-400"></span>
+                                    <span class="text-[11px] text-slate-300 font-semibold">Shh 확산 농도</span>
+                                </div>
+                                <svg id="limbBudMap" viewBox="0 0 200 150" class="w-full h-full max-h-[160px]">
+                                    <path d="M 20,40 Q 60,10 140,50 Q 190,90 140,130 Q 60,140 20,110 Z" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+                                    <g id="zpaIndicator">
+                                        <ellipse cx="145" cy="110" rx="16" ry="11" fill="#f43f5e" opacity="0.7"/>
+                                        <text x="145" y="113" fill="#ffffff" font-size="8" font-weight="bold" text-anchor="middle">ZPA</text>
+                                    </g>
+                                    <circle id="shhGrad3" cx="145" cy="110" r="50" fill="url(#shhGradRadial)" opacity="0.45"/>
+                                    <text x="25" y="25" fill="#94a3b8" font-size="9" font-weight="bold">← 전방(엄지쪽)</text>
+                                    <text x="115" y="142" fill="#94a3b8" font-size="9" font-weight="bold">후방(새끼쪽) →</text>
+                                    <defs>
+                                        <radialGradient id="shhGradRadial" cx="80%" cy="80%" r="80%">
+                                            <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.8"/>
+                                            <stop offset="40%" stop-color="#f43f5e" stop-opacity="0.4"/>
+                                            <stop offset="100%" stop-color="#f43f5e" stop-opacity="0"/>
+                                        </radialGradient>
+                                    </defs>
+                                </svg>
+                            </div>
+
+                            <div class="w-full md:w-1/2 h-full flex flex-col items-center justify-center relative border-t md:border-t-0 md:border-l border-slate-700 pt-4 md:pt-0 md:pl-4">
+                                <div class="text-xs text-slate-300 font-semibold mb-2">관찰된 손가락뼈 구조</div>
+                                <svg id="mousePawSvg" viewBox="0 0 180 180" class="w-full h-full max-h-[170px] max-w-[170px]">
+                                    <g id="pawG" transform="translate(10, 10)"></g>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-3.5 bg-slate-900/70 border border-slate-700 rounded-xl">
+                            <div class="flex flex-wrap justify-between items-center gap-2 text-xs font-semibold text-slate-300 mb-2">
+                                <span><i class="fa-solid fa-chart-bar text-emerald-300 mr-1.5"></i>결과 요약</span>
+                                <span id="pawSummary" class="text-[11px] font-mono text-emerald-300">형태 형성 정상</span>
+                            </div>
+                            <p class="text-sm text-slate-300 leading-relaxed mb-3"></p>
+                            <div id="digitLabelsContainer" class="flex flex-wrap gap-1.5"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-6 border-t border-slate-700 pt-4 text-center">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-3">
+                <p class="text-xs text-slate-500">
+                    소닉 헤지혹 발달 유전 가상 실험실 · 컴퓨터 모델링(in silico) 시뮬레이션
+                </p>
+                <button id="viewTheoryBtn" class="text-indigo-300 hover:text-indigo-200 text-xs font-medium hover:underline">
+                    <i class="fa-solid fa-circle-info mr-1"></i>기전 자세히 보기
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <div id="theoryModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl flex flex-col gap-4 relative">
+            <button id="closeTheoryBtn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-200 text-lg" aria-label="닫기">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-circle-nodes text-indigo-300"></i>
+                <span>Shh 전사 스위치, 조금 더 자세히</span>
+            </h3>
+            <div class="text-sm text-slate-200 flex flex-col gap-3 leading-relaxed">
+                <p>소닉 헤지혹(Shh) 경로는 세포 표면의 일차 섬모(primary cilium)를 무대로 작동하는 신호 전달 회로예요.</p>
+                <div class="border-l-2 border-rose-400 pl-3 py-1.5 bg-slate-900/50 rounded-r-lg">
+                    <strong class="text-rose-300 text-xs block mb-1">Shh가 없을 때 → 엄지손가락 운명</strong>
+                    Ptc가 Smo를 억제하고, PKA가 Gli를 잘라 억제형(GliR)으로 만들어요. 유전자가 꺼지면서 가장 단순한 형태(1번 지골)로 분화해요.
+                </div>
+                <div class="border-l-2 border-emerald-400 pl-3 py-1.5 bg-slate-900/50 rounded-r-lg">
+                    <strong class="text-emerald-300 text-xs block mb-1">Shh가 있을 때 → 새끼손가락 운명</strong>
+                    Shh가 Ptc에 결합해 억제를 풀면 Smo가 활성화되고 PKA를 막아요. Gli는 온전한 활성형(GliA)으로 핵에 들어가 유전자를 켜요.
+                </div>
+            </div>
+            <button id="closeTheoryBtnInner" class="mt-1 py-2.5 px-5 bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold rounded-lg text-white transition-all self-center">
+                확인했어요
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const simState = { shhLevel: 5.0, zpaPosition: 'posterior', smoType: 'normal', pkaActive: false, currentTab: 'molecular' };
+
+            const shhSlider = document.getElementById('shhSlider');
+            const shhVal = document.getElementById('shhVal');
+            const zpaPosterior = document.getElementById('zpaPosterior');
+            const zpaAnterior = document.getElementById('zpaAnterior');
+            const zpaBilateral = document.getElementById('zpaBilateral');
+            const smoNormal = document.getElementById('smoNormal');
+            const smoLof = document.getElementById('smoLof');
+            const smoGof = document.getElementById('smoGof');
+            const smoDesc = document.getElementById('smoDesc');
+            const pkaToggle = document.getElementById('pkaToggle');
+            const presetNormal = document.getElementById('presetNormal');
+            const presetPolydactyly = document.getElementById('presetPolydactyly');
+
+            const tabMolecular = document.getElementById('tabMolecular');
+            const tabOrgan = document.getElementById('tabOrgan');
+            const viewMolecularContainer = document.getElementById('viewMolecularContainer');
+            const viewOrganContainer = document.getElementById('viewOrganContainer');
+
+            const molecularStatus = document.getElementById('molecularStatus');
+            const molecularReport = document.getElementById('molecularReport');
+            const organStatus = document.getElementById('organStatus');
+            const pawSummary = document.getElementById('pawSummary');
+            const digitLabelsContainer = document.getElementById('digitLabelsContainer');
+            const organExplanation = document.querySelector('#viewOrganContainer p.text-slate-300');
+
+            const theoryModal = document.getElementById('theoryModal');
+            const viewTheoryBtn = document.getElementById('viewTheoryBtn');
+            const closeTheoryBtn = document.getElementById('closeTheoryBtn');
+            const closeTheoryBtnInner = document.getElementById('closeTheoryBtnInner');
+
+            const extracellularShh = document.getElementById('extracellularShh');
+            const ptcReceptor = document.getElementById('ptcReceptor');
+            const ptcStatusText = document.getElementById('ptcStatusText');
+            const smoReceptor = document.getElementById('smoReceptor');
+            const pkaKinase = document.getElementById('pkaKinase');
+            const gliTF = document.getElementById('gliTF');
+            const rnaPoly = document.getElementById('rnaPoly');
+            const ptcSmoInhibit = document.getElementById('ptcSmoInhibit');
+            const smoPkaInhibit = document.getElementById('smoPkaInhibit');
+            const pkaGliPhospho = document.getElementById('pkaGliPhospho');
+
+            tabMolecular.addEventListener('click', () => { simState.currentTab = 'molecular'; updateTabUI(); });
+            tabOrgan.addEventListener('click', () => { simState.currentTab = 'organ'; updateTabUI(); });
+
+            function updateTabUI() {
+                const activeCls = "flex-1 py-2.5 text-sm font-semibold rounded-lg bg-indigo-500 text-white transition-all flex items-center justify-center gap-2";
+                const inactiveCls = "flex-1 py-2.5 text-sm font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all flex items-center justify-center gap-2";
+                if (simState.currentTab === 'molecular') {
+                    tabMolecular.className = activeCls; tabOrgan.className = inactiveCls;
+                    viewMolecularContainer.classList.remove('hidden'); viewOrganContainer.classList.add('hidden');
+                } else {
+                    tabOrgan.className = activeCls; tabMolecular.className = inactiveCls;
+                    viewOrganContainer.classList.remove('hidden'); viewMolecularContainer.classList.add('hidden');
+                }
+            }
+
+            shhSlider.addEventListener('input', (e) => {
+                simState.shhLevel = parseFloat(e.target.value);
+                shhVal.textContent = `${simState.shhLevel.toFixed(1)} / 10`;
+                runSimulation();
+            });
+
+            function updateZpaUI(activeBtn) {
+                [zpaPosterior, zpaAnterior, zpaBilateral].forEach(btn => {
+                    btn.className = "py-2.5 px-2 text-xs font-semibold rounded-lg border border-slate-600 bg-slate-700/40 text-slate-300 hover:bg-slate-700 transition-all";
+                });
+                activeBtn.className = activeBtn.className.replace('border-slate-600 bg-slate-700/40 text-slate-300 hover:bg-slate-700', 'border-indigo-500 bg-indigo-500/20 text-white');
+            }
+            zpaPosterior.addEventListener('click', () => { simState.zpaPosition = 'posterior'; updateZpaUI(zpaPosterior); runSimulation(); });
+            zpaAnterior.addEventListener('click', () => { simState.zpaPosition = 'anterior'; updateZpaUI(zpaAnterior); runSimulation(); });
+            zpaBilateral.addEventListener('click', () => { simState.zpaPosition = 'bilateral'; updateZpaUI(zpaBilateral); runSimulation(); });
+
+            function updateSmoUI(activeBtn, text) {
+                [smoNormal, smoLof, smoGof].forEach(btn => {
+                    btn.className = "py-2.5 px-2 text-xs font-semibold rounded-lg border border-slate-600 bg-slate-700/40 text-slate-300 hover:bg-slate-700 transition-all";
+                });
+                activeBtn.className = "py-2.5 px-2 text-xs font-semibold rounded-lg border border-indigo-500 bg-indigo-500/20 text-white transition-all";
+                smoDesc.innerHTML = text;
+            }
+            smoNormal.addEventListener('click', () => { simState.smoType = 'normal'; updateSmoUI(smoNormal, "정상적으로 Shh에 반응해 하위 신호 스위치를 켭니다."); runSimulation(); });
+            smoLof.addEventListener('click', () => { simState.smoType = 'lof'; updateSmoUI(smoLof, "<strong class='text-rose-300'>기능 상실</strong>: Shh가 있어도 스위치를 켜지 못해요."); runSimulation(); });
+            smoGof.addEventListener('click', () => { simState.smoType = 'gof'; updateSmoUI(smoGof, "<strong class='text-amber-300'>상시 활성</strong>: Shh 없이도 늘 켜져 있어요."); runSimulation(); });
+
+            pkaToggle.addEventListener('change', (e) => { simState.pkaActive = e.target.checked; runSimulation(); });
+
+            presetNormal.addEventListener('click', () => {
+                simState.shhLevel = 5.0; simState.zpaPosition = 'posterior'; simState.smoType = 'normal'; simState.pkaActive = false;
+                shhSlider.value = 5.0; shhVal.textContent = "5.0 / 10"; pkaToggle.checked = false;
+                updateZpaUI(zpaPosterior); updateSmoUI(smoNormal, "정상적으로 Shh에 반응해 하위 신호 스위치를 켭니다.");
+                runSimulation();
+            });
+            presetPolydactyly.addEventListener('click', () => {
+                simState.shhLevel = 8.0; simState.zpaPosition = 'anterior'; simState.smoType = 'normal'; simState.pkaActive = false;
+                shhSlider.value = 8.0; shhVal.textContent = "8.0 / 10"; pkaToggle.checked = false;
+                updateZpaUI(zpaAnterior); updateSmoUI(smoNormal, "정상적으로 Shh에 반응해 하위 신호 스위치를 켭니다.");
+                runSimulation();
+            });
+
+            viewTheoryBtn.addEventListener('click', (e) => { e.preventDefault(); theoryModal.classList.remove('hidden'); });
+            const closeModal = () => theoryModal.classList.add('hidden');
+            closeTheoryBtn.addEventListener('click', closeModal);
+            closeTheoryBtnInner.addEventListener('click', closeModal);
+
+            function runSimulation() {
+                let shhBinds = simState.shhLevel > 1.5;
+                let ptcActive = !shhBinds;
+
+                let smoActive = false;
+                if (simState.smoType === 'gof') smoActive = true;
+                else if (simState.smoType === 'lof') smoActive = false;
+                else smoActive = !ptcActive;
+
+                let pkaActive = simState.pkaActive ? true : !smoActive;
+                let gliState = pkaActive ? 'GliR' : 'GliA';
+                let targetGeneOn = gliState === 'GliA';
+
+                renderMolecularView(shhBinds, ptcActive, smoActive, pkaActive, gliState, targetGeneOn);
+                renderEmbryonicView(smoActive, targetGeneOn);
+            }
+
+            function renderMolecularView(shhBinds, ptcActive, smoActive, pkaActive, gliState, geneOn) {
+                extracellularShh.innerHTML = '';
+                const ligandCount = Math.floor(simState.shhLevel * 2.5);
+                for (let i = 0; i < ligandCount; i++) {
+                    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    circle.setAttribute("cx", Math.random() * 550 + 25);
+                    circle.setAttribute("cy", Math.random() * 55 + 20);
+                    circle.setAttribute("r", "5.5");
+                    circle.setAttribute("fill", "#fb7185");
+                    circle.setAttribute("opacity", "0.9");
+                    circle.setAttribute("class", "animate-float");
+                    circle.style.animationDelay = `${Math.random() * 2}s`;
+                    extracellularShh.appendChild(circle);
+                }
+
+                if (ptcActive) {
+                    ptcReceptor.querySelector('rect').setAttribute('fill', '#ef4444');
+                    ptcStatusText.setAttribute('fill', '#f87171');
+                    ptcStatusText.textContent = "Smo 억제 중";
+                    ptcSmoInhibit.setAttribute('stroke', '#ef4444'); ptcSmoInhibit.setAttribute('marker-end', 'url(#inhibit-marker)');
+                } else {
+                    ptcReceptor.querySelector('rect').setAttribute('fill', '#334155');
+                    ptcStatusText.setAttribute('fill', '#94a3b8');
+                    ptcStatusText.textContent = "Shh 결합으로 억제 해제";
+                    ptcSmoInhibit.setAttribute('stroke', '#475569'); ptcSmoInhibit.setAttribute('marker-end', 'none');
+                }
+
+                if (smoActive) {
+                    smoReceptor.querySelector('rect').setAttribute('fill', '#10b981');
+                    smoPkaInhibit.setAttribute('stroke', '#10b981'); smoPkaInhibit.setAttribute('marker-end', 'url(#inhibit-marker)');
+                } else {
+                    smoReceptor.querySelector('rect').setAttribute('fill', '#334155');
+                    smoPkaInhibit.setAttribute('stroke', '#475569'); smoPkaInhibit.setAttribute('marker-end', 'none');
+                }
+
+                if (pkaActive) {
+                    pkaKinase.querySelector('circle').setAttribute('fill', '#ef4444');
+                    pkaGliPhospho.setAttribute('stroke', '#ef4444'); pkaGliPhospho.setAttribute('marker-end', 'url(#arrow-marker)');
+                } else {
+                    pkaKinase.querySelector('circle').setAttribute('fill', '#334155');
+                    pkaGliPhospho.setAttribute('stroke', '#475569'); pkaGliPhospho.setAttribute('marker-end', 'none');
+                }
+
+                const gliPoly = gliTF.querySelector('polygon');
+                const gliText = gliTF.querySelector('text');
+                if (gliState === 'GliR') {
+                    gliPoly.setAttribute('fill', '#f43f5e'); gliText.textContent = "GliR"; gliTF.setAttribute('transform', 'translate(0, 0)');
+                } else {
+                    gliPoly.setAttribute('fill', '#10b981'); gliText.textContent = "GliA"; gliTF.setAttribute('transform', 'translate(100, 60)');
+                }
+
+                if (geneOn) {
+                    rnaPoly.setAttribute('opacity', '1.0'); rnaPoly.setAttribute('class', 'animate-pulse-slow');
+                    molecularStatus.className = "text-xs font-mono font-bold bg-emerald-500/15 text-emerald-300 px-3 py-1.5 rounded-full border border-emerald-500/30";
+                    molecularStatus.textContent = "발달 유전자 활성화 (ON)";
+                } else {
+                    rnaPoly.setAttribute('opacity', '0.15'); rnaPoly.removeAttribute('class');
+                    molecularStatus.className = "text-xs font-mono font-bold bg-rose-500/15 text-rose-300 px-3 py-1.5 rounded-full border border-rose-500/30";
+                    molecularStatus.textContent = "신호 차단 (OFF)";
+                }
+
+                generateReportSteps(shhBinds, ptcActive, smoActive, pkaActive, gliState, geneOn);
+            }
+
+            function stepRow(active, title, desc) {
+                const bg = active ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-rose-500/10 border border-rose-500/20';
+                const dot = active ? 'bg-emerald-400' : 'bg-rose-400';
+                const badge = active ? 'text-emerald-300' : 'text-rose-300';
+                return `<div class="step-row ${bg}">
+                    <span class="h-2.5 w-2.5 rounded-full ${dot} mt-1.5 shrink-0"></span>
+                    <div>
+                        <p class="text-sm font-medium text-slate-100">${title} <span class="text-xs font-mono ${badge}">${active ? 'ON' : 'OFF'}</span></p>
+                        <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">${desc}</p>
+                    </div>
+                </div>`;
+            }
+
+            function generateReportSteps(shhBinds, ptcActive, smoActive, pkaActive, gliState, geneOn) {
+                let html = '';
+                if (simState.smoType === 'lof') {
+                    html += stepRow(false, 'Smo 수용체 (기능상실 돌연변이)', 'Shh가 있어도 신호를 전달하지 못해요.');
+                } else if (simState.smoType === 'gof') {
+                    html += stepRow(true, 'Smo 수용체 (상시활성 돌연변이)', 'Shh 없이도 항상 신호가 켜져 있어요.');
+                }
+                html += stepRow(shhBinds, 'Shh 신호물질', shhBinds ? '충분히 분비되어 Ptc 수용체와 결합했어요.' : '농도가 기준치보다 낮아요.');
+                html += stepRow(smoActive, 'Smo 활성화', smoActive ? '억제가 풀려 하위 신호를 전달해요.' : 'Ptc의 억제를 그대로 받고 있어요.');
+                html += stepRow(!pkaActive, 'Gli 활성형(GliA) 유지', pkaActive ? 'PKA가 Gli를 계속 억제형으로 잘라내요.' : 'PKA 작용이 막혀 Gli가 온전하게 보존돼요.');
+                html += stepRow(geneOn, '발달 유전자 전사', geneOn ? 'GliA가 핵에서 전사를 개시해요.' : 'GliR이 프로모터를 막아 전사가 일어나지 않아요.');
+                molecularReport.innerHTML = html;
+            }
+
+            function renderEmbryonicView(smoActive, targetGeneOn) {
+                const zpa = simState.zpaPosition;
+                const shh = simState.shhLevel;
+
+                let digits = [];
+                let explanation = "";
+                let statusLabel = "";
+                let statusClass = "";
+
+                if (simState.smoType === 'lof') {
+                    digits = [1, 1, 1, 1, 1];
+                    explanation = "<strong class='text-rose-300'>Smo 기능 상실:</strong> Shh 신호가 있어도 세포가 받아들이지 못해 모든 손가락이 가장 단순한 형태(1번, 엄지형)로만 자랐어요.";
+                    statusLabel = "지골 발달 저해"; statusClass = "text-rose-300 bg-rose-500/15 border-rose-500/30";
+                } else if (pkaToggle.checked) {
+                    digits = [1, 1, 1, 1, 1];
+                    explanation = "<strong class='text-rose-300'>PKA 과활성:</strong> Smo 상태와 관계없이 Gli가 계속 잘려서 유전자가 꺼진 채로, 손가락이 전부 단순한 형태로만 자랐어요.";
+                    statusLabel = "전사 차단형 왜소화"; statusClass = "text-rose-300 bg-rose-500/15 border-rose-500/30";
+                } else if (shh <= 1.0) {
+                    digits = [1, 1, 1];
+                    explanation = "<strong class='text-amber-300'>Shh 완전 결핍:</strong> 신호물질이 전혀 없어 농도 구배가 만들어지지 않고, 단순한 손가락 3개만 왜소하게 형성됐어요.";
+                    statusLabel = "Shh 결핍증"; statusClass = "text-amber-300 bg-amber-500/15 border-amber-500/30";
+                } else if (zpa === 'posterior') {
+                    if (shh >= 3.0 && shh <= 7.0) {
+                        digits = [1, 2, 3, 4, 5];
+                        explanation = "<strong class='text-emerald-300'>정상 발달:</strong> 후방 ZPA에서 적절한 농도 구배가 만들어져 엄지부터 새끼까지 1~5번 손가락이 순서대로 분화했어요.";
+                        statusLabel = "정상 야생형"; statusClass = "text-emerald-300 bg-emerald-500/15 border-emerald-500/30";
+                    } else if (shh < 3.0) {
+                        digits = [1, 1, 2, 3, 3];
+                        explanation = "<strong class='text-amber-300'>Shh 분비 저하:</strong> 신호가 약해서 후방에서 형성돼야 할 4, 5번 손가락이 제대로 분화하지 못했어요.";
+                        statusLabel = "농도 구배 저하"; statusClass = "text-amber-300 bg-amber-500/15 border-amber-500/30";
+                    } else {
+                        digits = [1, 2, 3, 4, 5, 5];
+                        explanation = "<strong class='text-amber-300'>Shh 과발현:</strong> 고농도 영역이 넓어져 새끼손가락(5번)이 하나 더 생기는 다지증이 나타났어요.";
+                        statusLabel = "과발현 다지증"; statusClass = "text-amber-300 bg-amber-500/15 border-amber-500/30";
+                    }
+                } else if (zpa === 'anterior') {
+                    digits = [5, 4, 3, 2, 1, 2, 3, 4, 5];
+                    explanation = "<strong class='text-amber-300'>전방 ZPA 이식 실험:</strong> 손더스의 고전 실험처럼 전방에도 ZPA를 이식하면, 양끝에서 신호가 퍼져 거울 대칭 형태의 9개 손가락(5-4-3-2-1-2-3-4-5)이 생겨요.";
+                    statusLabel = "거울 대칭 다지증"; statusClass = "text-amber-300 bg-amber-500/15 border-amber-500/30";
+                } else if (zpa === 'bilateral') {
+                    digits = [5, 5, 4, 3, 3, 4, 5, 5];
+                    explanation = "<strong class='text-amber-300'>양방향 과발현:</strong> 앞뒤 축 정체성이 사라지고 고농도 신호가 무차별적으로 퍼져, 고차 손가락 위주로 여러 개가 형성됐어요.";
+                    statusLabel = "양방향 다지증"; statusClass = "text-amber-300 bg-amber-500/15 border-amber-500/30";
+                }
+
+                drawMousePaw(digits);
+                organStatus.className = `text-xs font-mono font-bold px-3 py-1.5 rounded-full border ${statusClass}`;
+                organStatus.textContent = statusLabel;
+                pawSummary.textContent = `손가락 개수: ${digits.length}개`;
+                if (organExplanation) organExplanation.innerHTML = explanation;
+
+                digitLabelsContainer.innerHTML = '';
+                digits.forEach((d, idx) => {
+                    const span = document.createElement('span');
+                    let colorClass = "bg-slate-700 text-slate-200 border-slate-600";
+                    if (d === 1) colorClass = "bg-blue-500/15 text-blue-300 border-blue-500/30";
+                    if (d === 2 || d === 3) colorClass = "bg-indigo-500/15 text-indigo-300 border-indigo-500/30";
+                    if (d === 4 || d === 5) colorClass = "bg-rose-500/15 text-rose-300 border-rose-500/30";
+                    span.className = `text-xs font-semibold px-2.5 py-1 rounded-md border ${colorClass}`;
+                    span.innerHTML = `${idx + 1}번: <strong>D${d}</strong>`;
+                    digitLabelsContainer.appendChild(span);
+                });
+            }
+
+            function drawMousePaw(digits) {
+                const pawG = document.getElementById('pawG');
+                pawG.innerHTML = '';
+
+                const palm = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                palm.setAttribute("d", "M 50,110 Q 80,80 110,110 Q 120,140 80,150 Q 40,140 50,110 Z");
+                palm.setAttribute("fill", "#334155"); palm.setAttribute("stroke", "#64748b"); palm.setAttribute("stroke-width", "2");
+                pawG.appendChild(palm);
+
+                const count = digits.length;
+                const startAngle = -Math.PI * 0.75;
+                const endAngle = -Math.PI * 0.25;
+                const angleStep = count > 1 ? (endAngle - startAngle) / (count - 1) : 0;
+
+                for (let i = 0; i < count; i++) {
+                    const digitIdentity = digits[i];
+                    const angle = startAngle + (i * angleStep);
+                    let length = 35;
+                    if (digitIdentity === 1) length = 20;
+                    if (digitIdentity === 2) length = 28;
+                    if (digitIdentity === 3) length = 38;
+                    if (digitIdentity === 4) length = 42;
+                    if (digitIdentity === 5) length = 32;
+
+                    const startX = 80 + Math.cos(angle) * 20, startY = 110 + Math.sin(angle) * 20;
+                    const midX = 80 + Math.cos(angle) * (20 + length * 0.5), midY = 110 + Math.sin(angle) * (20 + length * 0.5);
+                    const endX = 80 + Math.cos(angle) * (20 + length), endY = 110 + Math.sin(angle) * (20 + length);
+
+                    const bone = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    bone.setAttribute("d", `M ${startX},${startY} L ${midX},${midY} L ${endX},${endY}`);
+                    bone.setAttribute("stroke", "#cbd5e1"); bone.setAttribute("stroke-width", "3.5");
+                    bone.setAttribute("stroke-linecap", "round"); bone.setAttribute("stroke-linejoin", "round"); bone.setAttribute("fill", "none");
+                    pawG.appendChild(bone);
+
+                    const jointColor = digitIdentity === 5 ? "#f87171" : (digitIdentity === 1 ? "#60a5fa" : "#c084fc");
+
+                    const j1 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    j1.setAttribute("cx", midX); j1.setAttribute("cy", midY); j1.setAttribute("r", "3.5"); j1.setAttribute("fill", "#e2e8f0");
+                    pawG.appendChild(j1);
+
+                    const j2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    j2.setAttribute("cx", endX); j2.setAttribute("cy", endY); j2.setAttribute("r", "4.5"); j2.setAttribute("fill", jointColor);
+                    pawG.appendChild(j2);
+
+                    const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    txt.setAttribute("x", endX + Math.cos(angle) * 13); txt.setAttribute("y", endY + Math.sin(angle) * 13 + 3);
+                    txt.setAttribute("fill", "#f1f5f9"); txt.setAttribute("font-size", "9"); txt.setAttribute("font-weight", "bold"); txt.setAttribute("text-anchor", "middle");
+                    txt.textContent = `D${digitIdentity}`;
+                    pawG.appendChild(txt);
+                }
+            }
+
+            runSimulation();
+        });
+    </script>
+</body>
+</html>
